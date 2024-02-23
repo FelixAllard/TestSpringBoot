@@ -1,0 +1,32 @@
+services:
+    champmobileapp:
+        build: .
+        depends_on:
+            mysql_server:
+                condition: service_healthy
+        environment: [SPRING_PROFILES_ACTIVE=docker]
+        hostname: champmobileapp
+        ports: [8080:8080]
+
+    mysql_server:
+        image: mysql:latest
+        environment: ['MYSQL_DATABASE=champmobiles-db', 'MYSQL_USER=user',
+                      'MYSQL_PASSWORD=secretpwd', 'MYSQL_ROOT_PASSWORD=verysecretpwd']
+        ports:
+            - "3307:3306"
+        healthcheck:
+            interval: 10s
+            retries: 10
+            test: [ "CMD", "mysqladmin", "ping", "-uuser", "-psecretpwd", "-h", "localhost" ]
+            timeout: 5s
+
+
+
+    phpmyadmin:
+        container_name: PhpMyAdmin
+        environment: [PMA_ARBITRARY=1]
+        image: phpmyadmin:5.2.0
+        links: [mysql_server]
+        ports: [5013:80]
+        restart: always
+version: '3.6'
